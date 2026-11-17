@@ -1,0 +1,56 @@
+# ===============================
+# Environment & Secrets
+# ===============================
+.env
+*.env
+!.env.example
+*.local
+
+# ===============================
+# Java & Maven (Backend)
+# ===============================
+**/target/
+target/
+*.jar
+*.war
+*.class
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ===============================
+# Node.js & React (Frontend)
+# ===============================
+**/node_modules/
+node_modules/
+**/dist/
+dist/
+.npm
+.vite/
+
+# ===============================
+# IDE & Editors
+# ===============================
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.classpath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# ===============================
+# Operating System Files & Logs
+# ===============================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
