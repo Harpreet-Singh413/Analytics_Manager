@@ -1,0 +1,146 @@
+package com.analytics.manager.consumer.config;
+
+import com.analytics.manager.common.model.AnalyticsEvent;
+import com.analytics.manager.ingestion.validation.EventTypeValidationException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.NestedExceptionUtils;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.kafka.annotation.EnableKafka;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.serializer.DeserializationException;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
+import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.messaging.converter.MessageConversionException;
+import org.springframework.transaction.CannotCreateTransactionException;
+import org.springframework.util.backoff.ExponentialBackOff;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Slf4j
+@EnableKafka
+@Configuration
+public class KafkaConsumerConfig {
+
+    public static final String MAIN_TOPIC = "analytics-events";
+    public static final String DLQ_TOPIC = "analytics-events-dlq";
+    public static final String CONSUMER_GROUP_ID = "analytics-consumer-group";
+    public static final String DLQ_CONSUMER_GROUP_ID = "analytics-dlq-group";
+
+    @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
+    private String bootstrapServers;
+
+    @Bean
+    public ConsumerFactory<String, AnalyticsEvent> consumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, CONSUMER_GROUP_ID);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        props.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, 100);
+        props.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000); // 5 minutes
+
+        // Key Deserializer
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        props.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
+
+        // Value Deserializer with Poison-Pill Protection
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        props.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, AnalyticsEvent.class.getName());
+        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public DeadLetterPublishingRecoverer deadLetterPublishingRecoverer(KafkaTemplate<String, Object> kafkaTemplate) {
+        return new DeadLetterPublishingRecoverer(kafkaTemplate, (record, ex) -> {
+            Throwable root = NestedExceptionUtils.getMostSpecificCause(ex);
+            // Infrastructure exceptions (DB down) must NOT go to DLQ
+            if (root instanceof CannotCreateTransactionException || root instanceof DataAccessResourceFailureException) {
+                log.error("Infrastructure exception occurred: keeping in main topic with backoff, will not send to DLQ: {}", root.getMessage());
+                return null;
+            }
+            log.warn("Routing failed record from partition {} offset {} to DLQ topic {}",
+                    record.partition(), record.offset(), DLQ_TOPIC);
+            return new TopicPartition(DLQ_TOPIC, 0);
+        });
+    }
+
+    @Bean
+    public DefaultErrorHandler defaultErrorHandler(DeadLetterPublishingRecoverer recoverer) {
+        // Exponential backoff: 1s, 2s, 4s (max 3 retries)
+        ExponentialBackOff backOff = new ExponentialBackOff(1000L, 2.0);
+        backOff.setMaxElapsedTime(10000L);
+
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(recoverer, backOff);
+
+        // Non-retryable exceptions: immediate routing to DLQ without retries
+        errorHandler.addNotRetryableExceptions(
+                DeserializationException.class,
+                MessageConversionException.class,
+                JsonProcessingException.class,
+                IllegalArgumentException.class,
+                EventTypeValidationException.class
+        );
+
+        return errorHandler;
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, AnalyticsEvent> kafkaListenerContainerFactory(
+            ConsumerFactory<String, AnalyticsEvent> consumerFactory,
+            DefaultErrorHandler defaultErrorHandler
+    ) {
+        ConcurrentKafkaListenerContainerFactory<String, AnalyticsEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory);
+        factory.setConcurrency(3); // 3 threads for 3 partitions
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        factory.setCommonErrorHandler(defaultErrorHandler);
+        return factory;
+    }
+
+    // ==========================================
+    // DLQ Consumer Container Factory (Raw Strings)
+    // ==========================================
+
+    @Bean
+    public ConsumerFactory<String, String> dlqConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, DLQ_CONSUMER_GROUP_ID);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(props);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, String> dlqKafkaListenerContainerFactory(
+            ConsumerFactory<String, String> dlqConsumerFactory
+    ) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(dlqConsumerFactory);
+        factory.setConcurrency(1); // 1 partition for DLQ
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
+        return factory;
+    }
+}
