@@ -3,16 +3,22 @@ package com.analytics.manager.consumer.listener;
 import com.analytics.manager.common.model.AnalyticsEvent;
 import com.analytics.manager.consumer.config.KafkaConsumerConfig;
 import com.analytics.manager.consumer.service.EventProcessingService;
+import com.analytics.manager.ingestion.validation.EventTypeValidationException;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.core.NestedExceptionUtils;
+import org.springframework.dao.DataAccessException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.CannotCreateTransactionException;
+
+import java.sql.SQLException;
 
 @Slf4j
 @Component
@@ -63,8 +69,28 @@ public class AnalyticsEventsConsumer {
                 acknowledgment.acknowledge();
             }
 
+        } catch (Exception ex) {
+            recordFailure(ex);
+            log.error("Failed processing eventId={} on partition={} offset={}: {}",
+                    event.getEventId(), partition, offset, ex.getMessage());
+            throw ex;
         } finally {
             MDC.clear();
         }
+    }
+
+    private void recordFailure(Throwable ex) {
+        Throwable root = NestedExceptionUtils.getMostSpecificCause(ex);
+        String reason = "unknown";
+        if (root instanceof EventTypeValidationException || root instanceof IllegalArgumentException) {
+            reason = "validation";
+        } else if (root instanceof CannotCreateTransactionException || root instanceof DataAccessException || root instanceof SQLException) {
+            reason = "db";
+        }
+        Counter.builder("analytics_events_failed_total")
+                .tag("reason", reason)
+                .description("Total event processing failures")
+                .register(meterRegistry)
+                .increment();
     }
 }

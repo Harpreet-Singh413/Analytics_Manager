@@ -1,0 +1,437 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "System Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "gridPos": { "h": 4, "w": 3, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "pluginVersion": "11.2.0",
+      "targets": [{ "expr": "up{job=\"analytics-manager\"}", "instant": true, "refId": "A" }],
+      "title": "App Health",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 3, "y": 1 },
+      "id": 2,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [{ "expr": "sum(analytics_events_published_total) or vector(0)", "instant": true, "refId": "A" }],
+      "title": "Total Published (Acked)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 7, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [{ "expr": "sum(analytics_events_processed_total) or vector(0)", "instant": true, "refId": "A" }],
+      "title": "Total Processed (DB)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 11, "y": 1 },
+      "id": 4,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [{ "expr": "sum(analytics_events_duplicates_total) or vector(0)", "instant": true, "refId": "A" }],
+      "title": "Duplicates Skipped",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 1 }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 15, "y": 1 },
+      "id": 5,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false } },
+      "targets": [{ "expr": "sum(analytics_events_dlq_total) or vector(0)", "instant": true, "refId": "A" }],
+      "title": "DLQ / Failed Events",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "max": 1000,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "orange", "value": 100 }, { "color": "red", "value": 500 }] },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 5, "x": 19, "y": 1 },
+      "id": 6,
+      "options": { "minVizHeight": 10, "minVizWidth": 10, "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "targets": [{ "expr": "max(kafka_consumer_fetch_manager_records_lag_max) or vector(0)", "instant": true, "refId": "A" }],
+      "title": "Max Consumer Lag",
+      "type": "gauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 200,
+      "title": "Pipeline Throughput (Hero)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "spanNulls": false },
+          "unit": "reqps"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Published Rate (Broker Acked)" }, "properties": [{ "id": "color", "value": { "fixedColor": "rgb(31, 120, 180)", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "Processed Rate (DB Committed)" }, "properties": [{ "id": "color", "value": { "fixedColor": "rgb(51, 160, 44)", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 14, "x": 0, "y": 6 },
+      "id": 7,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max", "mean"] }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "expr": "sum(rate(analytics_events_published_total[1m])) or vector(0)", "legendFormat": "Published Rate (Broker Acked)", "refId": "A" },
+        { "expr": "sum(rate(analytics_events_processed_total[1m])) or vector(0)", "legendFormat": "Processed Rate (DB Committed)", "refId": "B" }
+      ],
+      "title": "HERO: Published vs Processed Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "bars", "fillOpacity": 80, "stacking": { "group": "A", "mode": "normal" } },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 10, "x": 14, "y": 6 },
+      "id": 8,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "mean"] }, "tooltip": { "mode": "multi" } },
+      "targets": [{ "expr": "sum by (eventType) (rate(analytics_events_processed_total[1m]))", "legendFormat": "{{eventType}}", "refId": "A" }],
+      "title": "Processed Events by Type",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 300,
+      "title": "Latency Profiles",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 15 },
+      "id": 9,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max", "mean"] }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum by (le) (rate(analytics_event_end_to_end_seconds_bucket[1m])))", "legendFormat": "p50 E2E Latency", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(analytics_event_end_to_end_seconds_bucket[1m])))", "legendFormat": "p95 E2E Latency", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(analytics_event_end_to_end_seconds_bucket[1m])))", "legendFormat": "p99 E2E Latency", "refId": "C" }
+      ],
+      "title": "End-to-End Latency (receivedAt to DB persisted)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 15 },
+      "id": 10,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum by (le) (rate(analytics_event_processing_seconds_bucket[1m])))", "legendFormat": "p50 Consumer Handling Time", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(analytics_event_processing_seconds_bucket[1m])))", "legendFormat": "p95 Consumer Handling Time", "refId": "B" }
+      ],
+      "title": "Consumer Processing Time per Record",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "id": 400,
+      "title": "Consumer Health & Idempotency",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 23 },
+      "id": 11,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [{ "expr": "max(kafka_consumer_fetch_manager_records_lag_max)", "legendFormat": "Max Consumer Lag", "refId": "A" }],
+      "title": "Consumer Lag Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "purple" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 23 },
+      "id": 12,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [{ "expr": "rate(analytics_events_duplicates_total[1m])", "legendFormat": "Duplicate Events Rate", "refId": "A" }],
+      "title": "Duplicate Events Rate (ON CONFLICT IGNORE)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "red" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 23 },
+      "id": 13,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [{ "expr": "rate(analytics_events_dlq_total[1m])", "legendFormat": "DLQ Routing Rate", "refId": "A" }],
+      "title": "DLQ Routing Rate",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 29 },
+      "id": 500,
+      "title": "HTTP Ingestion API & Actuator",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 30 },
+      "id": 14,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "mean"] } },
+      "targets": [{ "expr": "sum by (status) (rate(http_server_requests_seconds_count[1m]))", "legendFormat": "HTTP {{status}}", "refId": "A" }],
+      "title": "HTTP Request Rate by Status",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 30 },
+      "id": 15,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_seconds_bucket[1m])))", "legendFormat": "{{uri}} (p95)", "refId": "A" }],
+      "title": "HTTP Latency (p95) by URI",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "red" },
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 30 },
+      "id": 16,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [{ "expr": "sum by (status) (rate(http_server_requests_seconds_count{status=~\"[45]..\"}[1m]))", "legendFormat": "HTTP {{status}}", "refId": "A" }],
+      "title": "HTTP 4xx / 5xx Error Rates",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "id": 600,
+      "title": "Failures & Error Handling",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 37 },
+      "id": 17,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [{ "expr": "sum by (reason) (rate(analytics_events_publish_failed_total[1m]))", "legendFormat": "Publish Failure: {{reason}}", "refId": "A" }],
+      "title": "Producer Publish Failures by Reason",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 37 },
+      "id": 18,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [{ "expr": "sum by (reason) (rate(analytics_events_failed_total[1m]))", "legendFormat": "Processing Failure: {{reason}}", "refId": "A" }],
+      "title": "Consumer Processing Failures by Reason",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 43 },
+      "id": 700,
+      "title": "JVM & Database Infrastructure",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 44 },
+      "id": 19,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{area=\"heap\"}", "legendFormat": "Heap Used", "refId": "A" },
+        { "expr": "jvm_memory_max_bytes{area=\"heap\"}", "legendFormat": "Heap Max", "refId": "B" }
+      ],
+      "title": "JVM Heap Memory Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 8, "y": 44 },
+      "id": 20,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [
+        { "expr": "hikaricp_connections_active", "legendFormat": "Active Connections", "refId": "A" },
+        { "expr": "hikaricp_connections_idle", "legendFormat": "Idle Connections", "refId": "B" },
+        { "expr": "hikaricp_connections_pending", "legendFormat": "Pending Connections", "refId": "C" }
+      ],
+      "title": "HikariCP Database Connections",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 6, "w": 8, "x": 16, "y": 44 },
+      "id": 21,
+      "options": { "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] } },
+      "targets": [
+        { "expr": "jvm_threads_live_threads", "legendFormat": "Live Threads", "refId": "A" },
+        { "expr": "jvm_threads_peak_threads", "legendFormat": "Peak Threads", "refId": "B" }
+      ],
+      "title": "JVM Thread Activity",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["analytics", "kafka", "pipeline"],
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": { "refresh_intervals": ["5s", "10s", "30s", "1m"] },
+  "timezone": "browser",
+  "title": "Analytics Manager — Pipeline",
+  "uid": "analytics-manager-pipeline",
+  "version": 1
+}

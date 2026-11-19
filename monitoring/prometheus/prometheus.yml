@@ -1,0 +1,18 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'analytics-manager'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 5s
+    static_configs:
+      # Scrape targets:
+      # - '10.0.2.2:8080' when Prometheus runs inside VirtualBox Ubuntu VM (NAT gateway to host)
+      # - '192.168.56.1:8080' when using VirtualBox Host-Only networking
+      # - 'host.docker.internal:8080' when Prometheus runs in Docker on Windows host
+      # - 'localhost:8080' when running directly on host
+      - targets: ['10.0.2.2:8080']
+        labels:
+          application: 'analytics-manager'
+          env: 'development'

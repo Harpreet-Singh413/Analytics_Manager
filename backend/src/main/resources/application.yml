@@ -43,6 +43,11 @@ management:
       show-details: always
       probes:
         enabled: true
+      group:
+        liveness:
+          include: livenessState
+        readiness:
+          include: readinessState,db,kafka
   metrics:
     tags:
       application: analytics-manager
