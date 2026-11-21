@@ -5,6 +5,7 @@ import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.DescribeClusterOptions;
 import org.apache.kafka.clients.admin.DescribeClusterResult;
 import org.apache.kafka.common.Node;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.kafka.core.KafkaAdmin;
@@ -28,6 +29,7 @@ public class KafkaHealthIndicator implements HealthIndicator {
     private final Function<Map<String, Object>, AdminClient> adminClientFactory;
     private static final int TIMEOUT_SECONDS = 3;
 
+    @Autowired
     public KafkaHealthIndicator(KafkaAdmin kafkaAdmin) {
         this(kafkaAdmin, AdminClient::create);
     }

@@ -31,6 +31,8 @@ public class KafkaProducerConfig {
         configProps.put(ProducerConfig.ACKS_CONFIG, "all");
         configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
         configProps.put(ProducerConfig.RETRIES_CONFIG, 10);
+        configProps.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 2000);
+        configProps.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 5000);
         configProps.put(ProducerConfig.DELIVERY_TIMEOUT_MS_CONFIG, 10000);
         configProps.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);
         configProps.put(ProducerConfig.LINGER_MS_CONFIG, 5);
